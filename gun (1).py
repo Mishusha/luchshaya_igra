@@ -33,7 +33,7 @@ class ball():
                 self.y + self.r,
                 fill=self.color
         )
-        self.live = 30
+        self.live = 100
 
     def set_coords(self):
         canv.coords(
@@ -52,16 +52,21 @@ class ball():
         и стен по краям окна (размер окна 800х600).
         """
         # FIXME
+        self.live -= 1
         if self.x - self.r < 0 and self.x < 0:
+            self.x = self.r
             self.vx = -0.8 *self.vx
 
         if self.x + self.r > 800 and self.x > 0:
+            self.x = 800 - self.r
             self.vx = -0.8 *self.vx
 
         if self.y - self.r < 0 and self.vy > 0:
+           self.y = self.r
            self.vy = -0.8*self.vy
 
         if self.y + self.r > 600 and self.vy < 0:
+            self.y = 600 - self.r
             self.vy = -0.8*self.vy
 
             if self.vy < 5:
@@ -80,7 +85,7 @@ class ball():
         	self.vx *= 0.96
 
         self.set_coords()
-        if abs(self.vx + self.vy) < 0.5:
+        if self.live < 0:
             balls.pop(balls.index(self))
             canv.delete(self.id)
 
@@ -152,7 +157,6 @@ class target():
     def __init__(self):
         self.points = 0
         self.id = canv.create_oval(0, 0, 0, 0)
-        self.id_points = canv.create_text(30, 30, text = self.points, font = '28')
         self.new_target()
         self.live = 1
 
@@ -167,21 +171,25 @@ class target():
 
     def hit(self, points=1):
         """Попадание шарика в цель."""
+        global sum_of_points
         canv.coords(self.id, -10, -10, -10, -10)
-        self.points += points
-        canv.itemconfig(self.id_points, text=self.points)
-
+        sum_of_points += points
+        canv.itemconfig(id_points, text = sum_of_points)
+sum_of_points = 0
 t1 = target()
+t2 = target()
 screen1 = canv.create_text(400, 300, text='', font='28')
+id_points = canv.create_text(30, 30, text = sum_of_points, font = '28')
 g1 = gun()
 bullet = 0
 balls = []
 
 
 def new_game(event=''):
-    global gun, t1, screen1, balls, bullet
+    global gun, t1, t2, screen1, balls, bullet
 
     t1.new_target()
+    t2.new_target()
     bullet = 0
     balls = []
     canv.bind('<Button-1>', g1.fire2_start)
@@ -190,12 +198,17 @@ def new_game(event=''):
 
     z = 0.03
     t1.live = 1
-    while t1.live or balls:
+    t2.live = 1
+    while (t1.live or t2.live) or balls:
         for b in balls:
             b.move()
             if b.hittest(t1) and t1.live:
                 t1.live = 0
                 t1.hit()
+            if b.hittest(t2) and t2.live:
+                t2.live = 0
+                t2.hit()
+            if (t1.live == 0) and (t2.live == 0):
                 canv.bind('<Button-1>', '')
                 canv.bind('<ButtonRelease-1>', '')
                 canv.itemconfig(screen1, text='Вы уничтожили цель за ' + str(bullet) + ' выстрелов')
