@@ -164,7 +164,9 @@ class target():
         """ Инициализация новой цели. """
         x = self.x = rnd(600, 780)
         y = self.y = rnd(300, 550)
-        r = self.r = rnd(2, 50)
+        r = self.r = rnd(20, 50)
+        vx = self.vx = rnd (-4, 4)
+        vy = self.vy = rnd (-4, 4)
         color = self.color = 'red'
         canv.coords(self.id, x-r, y-r, x+r, y+r)
         canv.itemconfig(self.id, fill=color)
@@ -175,6 +177,23 @@ class target():
         canv.coords(self.id, -10, -10, -10, -10)
         sum_of_points += points
         canv.itemconfig(id_points, text = sum_of_points)
+
+    #def set_coords(self):
+     #   canv.coords(self.id, self.x - self.r, self.y - self.r, self.x + self.r, self.x + self.r)
+
+    def move_target(self):
+        '''Функция описывает движенеи целей'''
+        if self.x-self.r < 0 or self.x + self.r > 800:
+            self.vx = -self.vx
+            self.vy = self.vy
+        if self.y-self.r < 0 or self.y+self.r > 600:
+            self.vy = -self.vy
+            self.vx = self.vx
+        canv.move(self.id, self.vx, self.vy)
+        self.x += self.vx
+        self.y += self.vy
+
+
 sum_of_points = 0
 t1 = target()
 t2 = target()
@@ -200,6 +219,10 @@ def new_game(event=''):
     t1.live = 1
     t2.live = 1
     while (t1.live or t2.live) or balls:
+        if t1.live:
+            t1.move_target()
+        if t2.live:
+            t2.move_target()
         for b in balls:
             b.move()
             if b.hittest(t1) and t1.live:
